@@ -21,50 +21,33 @@ In Time Series Forecasting & Machine Learning most of the focus is on finding an
 Tested only on windows with anaconda and python 3.8.5
  
 
-# Using `Jupybricks` 
+# Using `tsnewsvendor` 
 
-Jupybricks is a command line tool can be used. More information with:
+## 1. Fit ProphetNewsvendor.fit()
+Note: Any parameters of prophets cross-validation function can be used (https://facebook.github.io/prophet/docs/diagnostics.html#cross-validation)
 ```
-jupybricks --help
-```
-
-## For single file conversion:
-
-Transforming databricks .py file to jupyter .ipynb:
-```
-jupybricks databricks-to-jupyter --input-filename <example_files/databricks_example.py> --output-filename <example_files/jupyter_example.ipynb>
-```
-Transforming jupyter .ipynb file to databricks .py file
-```
-jupybricks jupyter-to-databricks --input-filename <example_files/jupyter_example.ipynb> --output-filename <example_files/databricks_example.py>
+tsprophet_fit = ProphetNewsvendor.fit(model=m, initial='365 days', period='365 days', horizon = '180 days')
 ```
 
-## For multiple files:
-:warning: it is necessary to have a file named convert_list.json in your root folder from where you call jupybricks. Jupybricks uses this file in order to know which files are used for mapping .py files with the corresponding .ipynb files.
-As an example. 
+## 2. Predict with Prophet & Apply ProphetNewsvendor.applynewsvendor()
 ```
-{
-    "example_files/jupyter_example.ipynb" : "example_files/databricks_example.py"    
-}
-```
+forecast = m.predict(future)
 
-If you have the convert_list.json properly set up then you can run the cli commands without paramets:
+forecast['newsvendor_result'] = forecast.apply(lambda row: ProphetNewsvendor.applynewsvendor(
+    row['yhat'],
+    tsprophet_fit[0],
+    tsprophet_fit[1], 
+    0.75, 
+    0.2
+    ), axis = 1)
 ```
-jupybricks databricks-to-jupyter
-```
-```
-jupybricks jupyter-to-databricks
-```
+Explanation of parameters:
+* mean = row['yhat'] : Demand forecast from prophet
+* mean_error = tsprophet_fit[0] : Mean error of our our prophet forecast derived by cross-validation,
+* standard devation error = tsprophet_fit[1]: Standard deviation of our our prophet forecast derived by cross-validation, 
+* Sales Price = 0.75, 
+* Variable Cost = 0.2
 
-# Next Steps
-Feel free to reach out to give advice or feature requests.
-Planned next steps:
-- [ ] adding unit tests
-- [ ] adding mkdocs documentation
-- [ ] testing on different OS
-- [ ] heavy testing on different kind of databricks formats
-- [ ] Github Actions & pre commit hooks
-- [ ] installable version over pip
 
 **Developers:**
 
